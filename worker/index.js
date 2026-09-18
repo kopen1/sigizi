@@ -261,6 +261,7 @@ async function route(request, env, session, url) {
 
 export default {
   async fetch(request, env, ctx) {
+    if (!env.SIGIZI_KV && env.KV) env.SIGIZI_KV = env.KV;
     if (!basicAuth(request, env)) {
       return new Response('Perlu login aplikasi (APP_PASSWORD).', {
         status: 401,
