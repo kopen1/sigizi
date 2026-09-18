@@ -16,3 +16,5 @@ id = "e347759a6d0749f9a24afcd8f8a17ecc"
 
 [vars]
 SIGIZI_ENDPOINT = "https://sigizikesga.kemkes.go.id"
+SIGIZI_USER = "karangawen01"
+APP_USER = "sigizi"
