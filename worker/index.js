@@ -35,16 +35,61 @@ function getCookie(request, name) {
   return null;
 }
 
-function basicAuth(request, env) {
-  if (!env.APP_PASSWORD) return true;
-  const user = env.APP_USER || 'sigizi';
-  const header = request.headers.get('authorization') || '';
-  if (header.indexOf('Basic ') === 0) {
-    const decoded = atob(header.slice(6));
-    const sep = decoded.indexOf(':');
-    if (decoded.slice(0, sep) === user && decoded.slice(sep + 1) === env.APP_PASSWORD) return true;
+function loginPage(message) {
+  return '<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<title>Login Aplikasi</title><style>' +
+    'body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#e2e8f0;font-family:system-ui,sans-serif;padding:16px}' +
+    '.card{background:#1e293b;border:1px solid #334155;border-radius:14px;padding:24px;max-width:360px;width:100%}' +
+    'h1{font-size:18px;margin:0 0 4px}p{color:#94a3b8;font-size:13px;margin:0 0 16px}' +
+    'input{width:100%;padding:10px;border:1px solid #334155;border-radius:8px;background:#0b1220;color:#e2e8f0;box-sizing:border-box}' +
+    'button{margin-top:12px;width:100%;padding:11px;border:none;border-radius:8px;background:#22c55e;color:#06281a;font-weight:700;font-size:15px}' +
+    '.err{color:#fca5a5;font-size:13px;min-height:18px;margin-top:8px}</style></head>' +
+    '<body><form class="card" method="post" action="/api/app-login">' +
+    '<h1>Sigizi Simple</h1><p>Masukkan password aplikasi untuk lanjut.</p>' +
+    '<input type="password" name="password" placeholder="Password aplikasi" autofocus autocomplete="current-password" />' +
+    '<button type="submit">Masuk</button><div class="err">' + (message || '') + '</div>' +
+    '</form></body></html>';
+}
+
+async function appAuth(request, env, url) {
+  if (!env.APP_PASSWORD) return null;
+  const token = getCookie(request, 'appauth');
+  if (token && (await env.SIGIZI_KV.get('appauth:' + token))) return null;
+
+  if (url.pathname === '/api/app-logout') {
+    if (token) await env.SIGIZI_KV.delete('appauth:' + token);
+    return new Response(null, {
+      status: 303,
+      headers: { Location: '/', 'Set-Cookie': 'appauth=; Path=/; Max-Age=0' }
+    });
   }
-  return false;
+
+  if (url.pathname === '/api/app-login' && request.method === 'POST') {
+    const form = await request.formData().catch(function () { return null; });
+    const pass = form ? String(form.get('password') || '') : '';
+    if (pass && pass === env.APP_PASSWORD) {
+      const newToken = crypto.randomUUID();
+      await env.SIGIZI_KV.put('appauth:' + newToken, '1', { expirationTtl: 2592000 });
+      return new Response(null, {
+        status: 303,
+        headers: {
+          Location: '/',
+          'Set-Cookie': 'appauth=' + newToken + '; HttpOnly; SameSite=Lax; Path=/; Max-Age=2592000'
+        }
+      });
+    }
+    return new Response(loginPage('Password salah.'), {
+      status: 401,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' }
+    });
+  }
+
+  if (url.pathname.startsWith('/api/')) return json({ error: 'Perlu login aplikasi' }, 401);
+  return new Response(loginPage(''), {
+    status: 401,
+    headers: { 'Content-Type': 'text/html; charset=utf-8' }
+  });
 }
 
 function makeClient(session, env) {
@@ -270,14 +315,10 @@ async function route(request, env, session, url) {
 export default {
   async fetch(request, env, ctx) {
     if (!env.SIGIZI_KV && env.KV) env.SIGIZI_KV = env.KV;
-    if (!basicAuth(request, env)) {
-      return new Response('Perlu login aplikasi (APP_PASSWORD).', {
-        status: 401,
-        headers: { 'WWW-Authenticate': 'Basic realm="Sigizi Simple"' }
-      });
-    }
-
     const url = new URL(request.url);
+
+    const gate = await appAuth(request, env, url);
+    if (gate) return gate;
 
     if (!url.pathname.startsWith('/api/')) {
       if (env.ASSETS) return env.ASSETS.fetch(request);

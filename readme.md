@@ -113,6 +113,8 @@ Sekali saja:
 
 Catatan:
 - `APP_PASSWORD` wajib supaya tidak sembarang orang memakai akun Sigizi.
+  Saat diakses, muncul **halaman password** aplikasi (bukan Basic Auth browser);
+  setelah benar, sesi aplikasi tersimpan di browser ±30 hari.
 - Sesi Sigizi disimpan di KV (bertahan antar request). Bila sesi kedaluwarsa,
   login captcha lagi lewat halaman aplikasi.
 - KV ID bukan rahasia (hanya pengenal), jadi aman di-commit.
@@ -147,7 +149,7 @@ Isi environment variable di dashboard host:
 - `SIGIZI_USER` — username akun
 - `SIGIZI_PASS` — password akun
 - `APP_PASSWORD` — **wajib** untuk deploy publik (mencegah orang lain memakai
-  akun ini). Saat set, browser akan meminta login aplikasi (user default `sigizi`).
+  akun ini). Akan tampil halaman password aplikasi sebelum masuk.
 - `APP_USER` — opsional, default `sigizi`.
 
 Catatan hosting: file `.session.json`/`.cache-options.json` bersifat sementara
