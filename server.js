@@ -348,7 +348,11 @@ async function handleApi(req, res, session, url) {
   if (refMatch && req.method === 'GET') {
     const client = requireClient(session);
     const nik = decodeURIComponent(refMatch[1]);
+    const refKey = 'ref:' + nik;
+    const refHit = cacheGet(refKey);
+    if (refHit) return sendJson(res, 200, { history: refHit, cached: true });
     const history = await client.getPerkembangan(nik);
+    cacheSet(refKey, history, 120000);
     return sendJson(res, 200, { history: history });
   }
 
@@ -358,7 +362,11 @@ async function handleApi(req, res, session, url) {
     const nik = decodeURIComponent(ukurMatch[1]);
     const bulan = url.searchParams.get('bulan') || '';
     const tahun = url.searchParams.get('tahun') || '';
+    const ukurKey = 'ukur:' + nik + ':' + bulan + ':' + tahun;
+    const ukurHit = cacheGet(ukurKey);
+    if (ukurHit) return sendJson(res, 200, ukurHit);
     const details = await client.getUkur(nik, bulan, tahun);
+    cacheSet(ukurKey, details, 300000);
     return sendJson(res, 200, details);
   }
 
@@ -369,6 +377,8 @@ async function handleApi(req, res, session, url) {
       return sendJson(res, 400, { ok: false, error: 'NIK dan BB wajib diisi' });
     }
     const result = await client.saveUkur(body.nik, body.bulan, body.tahun, body.values);
+    cacheClearPrefix('ukur:' + body.nik + ':');
+    cacheClearPrefix('ref:' + body.nik + ':');
     return sendJson(res, 200, result);
   }
 
@@ -380,6 +390,8 @@ async function handleApi(req, res, session, url) {
     for (const item of items) {
       try {
         const result = await client.saveUkur(item.nik, body.bulan, body.tahun, item.values);
+        cacheClearPrefix('ukur:' + item.nik + ':');
+        cacheClearPrefix('ref:' + item.nik + ':');
         results.push(Object.assign({ ok: true }, result));
       } catch (e) {
         results.push({ ok: false, nik: item.nik, error: e.message });

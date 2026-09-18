@@ -85,3 +85,7 @@ membuka aplikasi.
   memakai **Daftar Balita + Tidak Ditimbang** untuk menentukan status. Akibatnya
   kolom Tgl Ukur/BB-U untuk data "Sudah" bisa kosong; detailnya tetap terbaca
   saat membuka form isi/koreksi.
+- Server Sigizi kadang lambat (5-15 detik/request). Tool menyimpan cache
+  **opsi wilayah** (Kecamatan/Puskesmas/Desa/Posyandu, file `.cache-options.json`,
+  24 jam) dan **form ukur** (5 menit, dibuang otomatis setelah simpan). Jadi
+  setelah dimuat sekali, buka Pengaturan/editor berikutnya jadi hampir instan.

@@ -461,7 +461,8 @@ function loadSettingPosy(selected) {
 
 function openSetting() {
   showSetting(true);
-  $('setting-msg').textContent = '';
+  $('setting-msg').textContent = 'Memuat opsi...';
+  $('setting-save').disabled = true;
   $('s-usia').innerHTML = $('f-usia').innerHTML;
   api('/api/config').then(function (data) {
     var c = data.config || state.defaults || {};
@@ -479,9 +480,12 @@ function openSetting() {
     }).then(function (d) {
       fillSelect('s-posy', d.options, c.POSY, 'kodewil', 'NAMA_POSYANDU');
       if (c.usia) $('s-usia').value = c.usia;
+      $('setting-msg').textContent = '';
+      $('setting-save').disabled = false;
     });
   }).catch(function (err) {
     $('setting-msg').textContent = err.message;
+    $('setting-save').disabled = false;
   });
 }
 
