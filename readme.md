@@ -89,3 +89,19 @@ membuka aplikasi.
   **opsi wilayah** (Kecamatan/Puskesmas/Desa/Posyandu, file `.cache-options.json`,
   24 jam) dan **form ukur** (5 menit, dibuang otomatis setelah simpan). Jadi
   setelah dimuat sekali, buka Pengaturan/editor berikutnya jadi hampir instan.
+
+### Deploy ke hosting (Render/Railway/Fly)
+Repo sudah menyiapkan `Dockerfile` dan `render.yaml`, jadi bisa auto-deploy
+setiap push ke GitHub.
+
+Isi environment variable di dashboard host:
+- `SIGIZI_ENDPOINT` — `https://sigizikesga.kemkes.go.id`
+- `SIGIZI_USER` — username akun
+- `SIGIZI_PASS` — password akun
+- `APP_PASSWORD` — **wajib** untuk deploy publik (mencegah orang lain memakai
+  akun ini). Saat set, browser akan meminta login aplikasi (user default `sigizi`).
+- `APP_USER` — opsional, default `sigizi`.
+
+Catatan hosting: file `.session.json`/`.cache-options.json` bersifat sementara
+(ephemeral) di container, jadi setelah restart perlu login captcha lagi.
+Kredensial **tidak** ikut ter-commit (`.env` diabaikan).

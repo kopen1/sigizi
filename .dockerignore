@@ -1,0 +1,7 @@
+.git
+.env
+.session.json
+.cache-options.json
+node_modules
+*.log
+*.tmp

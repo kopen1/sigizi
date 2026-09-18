@@ -36,6 +36,27 @@ const ENDPOINT = (process.env.SIGIZI_ENDPOINT || env.endpoint || '').replace(/\/
 const USERNAME = process.env.SIGIZI_USER || env.username || '';
 const PASSWORD = process.env.SIGIZI_PASS || env.password || '';
 
+const APP_USER = process.env.APP_USER || 'sigizi';
+const APP_PASSWORD = process.env.APP_PASSWORD || '';
+
+function checkBasicAuth(req, res) {
+  if (!APP_PASSWORD) return true;
+  const header = req.headers.authorization || '';
+  if (header.indexOf('Basic ') === 0) {
+    const decoded = Buffer.from(header.slice(6), 'base64').toString('utf8');
+    const sep = decoded.indexOf(':');
+    const user = sep >= 0 ? decoded.slice(0, sep) : '';
+    const pass = sep >= 0 ? decoded.slice(sep + 1) : '';
+    if (user === APP_USER && pass === APP_PASSWORD) return true;
+  }
+  res.writeHead(401, {
+    'WWW-Authenticate': 'Basic realm="Sigizi Simple"',
+    'Content-Type': 'text/plain; charset=utf-8'
+  });
+  res.end('Perlu login aplikasi (APP_PASSWORD).');
+  return false;
+}
+
 const DEFAULT_FILTER = {
   prov: '33',
   kab: '3321',
@@ -407,6 +428,7 @@ async function handleApi(req, res, session, url) {
 }
 
 const server = http.createServer(function (req, res) {
+  if (!checkBasicAuth(req, res)) return;
   const url = new URL(req.url, 'http://' + (req.headers.host || 'localhost'));
   if (!ENDPOINT) {
     if (url.pathname.startsWith('/api/')) {
