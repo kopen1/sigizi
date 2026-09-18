@@ -90,7 +90,26 @@ membuka aplikasi.
   24 jam) dan **form ukur** (5 menit, dibuang otomatis setelah simpan). Jadi
   setelah dimuat sekali, buka Pengaturan/editor berikutnya jadi hampir instan.
 
-### Deploy ke hosting (Render/Railway/Fly)
+### Akses publik via Cloudflare Tunnel (cloudflared)
+Cara ini menjalankan Node di perangkat sendiri, lalu dipublikasikan lewat
+Cloudflare (butuh `cloudflared` terpasang: `pkg install cloudflared`).
+
+```
+export APP_PASSWORD='password-pilihan-anda'   # wajib, untuk melindungi
+bash run-public.sh                            # server + tunnel di background
+```
+URL publik muncul di `$TMPDIR/sigizi-cf.log` (bentuk
+`https://xxxx.trycloudflare.com`). Hentikan dengan:
+```
+bash run-public.sh stop
+```
+Catatan:
+- URL quick tunnel **berubah setiap start**. Untuk URL tetap, buat *named
+  tunnel* + domain di dashboard Cloudflare.
+- Tanpa `APP_PASSWORD`, siapa pun yang punya URL bisa memakai akun Sigizi.
+- `start-public.sh` sama, tapi jalan di depan (foreground).
+
+### Alternatif: hosting (Render/Railway/Fly)
 Repo sudah menyiapkan `Dockerfile` dan `render.yaml`, jadi bisa auto-deploy
 setiap push ke GitHub.
 
