@@ -10,8 +10,8 @@ binding = "ASSETS"
 # Buat KV: npx wrangler kv namespace create SIGIZI_KV
 # lalu isi id di bawah dengan hasilnya.
 [[kv_namespaces]]
-binding = "SIGIZI_KV"
-id = "GANTI_DENGAN_KV_ID_ANDA"
+binding = "KV"
+id = "e347759a6d0749f9a24afcd8f8a17ecc"
 
 [vars]
 SIGIZI_ENDPOINT = "https://sigizikesga.kemkes.go.id"
