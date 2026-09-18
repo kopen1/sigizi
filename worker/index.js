@@ -153,6 +153,13 @@ async function route(request, env, session, url) {
     }
     const result = await client.login(username, password, body.captcha);
     persistClient(session, client);
+    if (result.ok) {
+      await env.SIGIZI_KV.put(
+        'sigizi-session',
+        JSON.stringify({ cookies: session.cookies, profile: session.profile }),
+        { expirationTtl: 5400 }
+      );
+    }
     return json(result, result.ok ? 200 : 401);
   }
 
@@ -160,6 +167,7 @@ async function route(request, env, session, url) {
     session.cookies = {};
     session.authed = false;
     session.profile = null;
+    await env.SIGIZI_KV.delete('sigizi-session');
     return json({ ok: true });
   }
 
@@ -286,6 +294,15 @@ export default {
     session.cookies = session.cookies || {};
     session.authed = Boolean(session.authed);
     session.profile = session.profile || null;
+
+    if (!session.authed) {
+      const shared = await env.SIGIZI_KV.get('sigizi-session', 'json');
+      if (shared && shared.cookies && Object.keys(shared.cookies).length) {
+        session.cookies = shared.cookies;
+        session.authed = true;
+        session.profile = shared.profile || null;
+      }
+    }
 
     let response;
     try {
