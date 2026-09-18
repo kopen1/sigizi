@@ -2,6 +2,7 @@
 .session.json
 .cache-options.json
 .run/
+.wrangler/
 node_modules/
 *.log
 *.tmp

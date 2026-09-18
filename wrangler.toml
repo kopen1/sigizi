@@ -1,0 +1,17 @@
+name = "sigizi-simple"
+main = "worker/index.js"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# Buat KV: npx wrangler kv namespace create SIGIZI_KV
+# lalu isi id di bawah dengan hasilnya.
+[[kv_namespaces]]
+binding = "SIGIZI_KV"
+id = "GANTI_DENGAN_KV_ID_ANDA"
+
+[vars]
+SIGIZI_ENDPOINT = "https://sigizikesga.kemkes.go.id"

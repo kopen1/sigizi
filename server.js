@@ -1,11 +1,10 @@
-'use strict';
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
-
-const { Target } = require('./lib/target');
+import { Target } from './lib/target.js';
 
 function loadEnv(file) {
   const env = {};
@@ -26,7 +25,7 @@ function loadEnv(file) {
   return env;
 }
 
-const ROOT = __dirname;
+const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const env = loadEnv(path.join(ROOT, '.env'));
 
 const PORT = Number(process.env.PORT || 8787);

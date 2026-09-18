@@ -90,7 +90,34 @@ membuka aplikasi.
   24 jam) dan **form ukur** (5 menit, dibuang otomatis setelah simpan). Jadi
   setelah dimuat sekali, buka Pengaturan/editor berikutnya jadi hampir instan.
 
-### Akses publik via Cloudflare Tunnel (cloudflared)
+### Deploy Cloudflare Workers (via GitHub, direkomendasikan)
+Aplikasi sudah di-port ke **Cloudflare Workers**: `worker/index.js` memakai
+logika yang sama (`lib/target.js`), sesi/config/cache disimpan di **KV**,
+file statis di folder `public/` disajikan lewat aset Worker. Deploy otomatis
+dari GitHub lewat `.github/workflows/deploy-cloudflare.yml`.
+
+Langkah sekali saja:
+1. Buat KV namespace:
+   ```
+   npx wrangler kv namespace create SIGIZI_KV
+   ```
+   Salin `id`-nya ke `wrangler.toml` (ganti `GANTI_DENGAN_KV_ID_ANDA`).
+2. Di GitHub → repo → **Settings → Secrets and variables → Actions**, tambah:
+   - `CLOUDFLARE_API_TOKEN` (izin: Workers Scripts Edit + Workers KV Storage Edit)
+   - `CLOUDFLARE_ACCOUNT_ID`
+   - `SIGIZI_USER`, `SIGIZI_PASS`, `APP_PASSWORD`
+   (`SIGIZI_ENDPOINT` sudah diisi di `wrangler.toml` `[vars]`.)
+3. Push ke `main` → workflow `Deploy to Cloudflare Workers` build & deploy.
+   URL: `https://sigizi-simple.<subdomain-anda>.workers.dev`.
+
+Catatan:
+- `APP_PASSWORD` wajib supaya tidak sembarang orang memakai akun Sigizi.
+- Sesi Sigizi disimpan di KV (bertahan antar request). Bila sesi kedaluwarsa,
+  login captcha lagi lewat halaman aplikasi.
+- Backend ini tetap meneruskan request ke server Sigizi; bila server Sigizi
+  memblokir IP Cloudflare, deploy ini tidak akan bisa mengambil data.
+
+### Alternatif cepat: Cloudflare Tunnel (cloudflared) dari perangkat lokal
 Cara ini menjalankan Node di perangkat sendiri, lalu dipublikasikan lewat
 Cloudflare (butuh `cloudflared` terpasang: `pkg install cloudflared`).
 
