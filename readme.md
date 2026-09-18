@@ -90,32 +90,34 @@ membuka aplikasi.
   24 jam) dan **form ukur** (5 menit, dibuang otomatis setelah simpan). Jadi
   setelah dimuat sekali, buka Pengaturan/editor berikutnya jadi hampir instan.
 
-### Deploy Cloudflare Workers (via GitHub, direkomendasikan)
+### Deploy Cloudflare Workers (build di Cloudflare, source di GitHub)
 Aplikasi sudah di-port ke **Cloudflare Workers**: `worker/index.js` memakai
-logika yang sama (`lib/target.js`), sesi/config/cache disimpan di **KV**,
-file statis di folder `public/` disajikan lewat aset Worker. Deploy otomatis
-dari GitHub lewat `.github/workflows/deploy-cloudflare.yml`.
+logika yang sama (`lib/target.js`), sesi/config/cache disimpan di **KV**, file
+statis di `public/` disajikan lewat aset Worker. Build & deploy dilakukan
+**Cloudflare Workers Builds (Connect to Git)** — GitHub hanya menyimpan source.
+Tidak perlu GitHub Actions maupun API token di GitHub.
 
-Langkah sekali saja:
-1. Buat KV namespace:
-   ```
-   npx wrangler kv namespace create SIGIZI_KV
-   ```
-   Salin `id`-nya ke `wrangler.toml` (ganti `GANTI_DENGAN_KV_ID_ANDA`).
-2. Di GitHub → repo → **Settings → Secrets and variables → Actions**, tambah:
-   - `CLOUDFLARE_API_TOKEN` (izin: Workers Scripts Edit + Workers KV Storage Edit)
-   - `CLOUDFLARE_ACCOUNT_ID`
-   - `SIGIZI_USER`, `SIGIZI_PASS`, `APP_PASSWORD`
-   (`SIGIZI_ENDPOINT` sudah diisi di `wrangler.toml` `[vars]`.)
-3. Push ke `main` → workflow `Deploy to Cloudflare Workers` build & deploy.
+Sekali saja:
+1. Di dashboard Cloudflare: **Workers & Pages → KV → Create** namespace
+   `SIGIZI_KV`. Salin **ID**-nya ke `wrangler.toml`
+   (ganti `GANTI_DENGAN_KV_ID_ANDA`), lalu commit & push.
+2. Dashboard Cloudflare: **Workers & Pages → Create → Connect to Git** →
+   pilih repo `kopen1/sigizi`.
+   - Build command: `npm install`
+   - Deploy command: `npx wrangler deploy`
+3. Setelah Worker dibuat: **Settings → Variables and Secrets**, tambah sebagai
+   *Secret*: `SIGIZI_USER`, `SIGIZI_PASS`, `APP_PASSWORD`.
+   (`SIGIZI_ENDPOINT` sudah ada di `wrangler.toml` `[vars]`.)
+4. Setiap push ke `main`, Cloudflare otomatis build & deploy.
    URL: `https://sigizi-simple.<subdomain-anda>.workers.dev`.
 
 Catatan:
 - `APP_PASSWORD` wajib supaya tidak sembarang orang memakai akun Sigizi.
 - Sesi Sigizi disimpan di KV (bertahan antar request). Bila sesi kedaluwarsa,
   login captcha lagi lewat halaman aplikasi.
-- Backend ini tetap meneruskan request ke server Sigizi; bila server Sigizi
-  memblokir IP Cloudflare, deploy ini tidak akan bisa mengambil data.
+- KV ID bukan rahasia (hanya pengenal), jadi aman di-commit.
+- Backend tetap meneruskan request ke server Sigizi; bila server Sigizi
+  memblokir IP Cloudflare, deploy ini tidak bisa mengambil data.
 
 ### Alternatif cepat: Cloudflare Tunnel (cloudflared) dari perangkat lokal
 Cara ini menjalankan Node di perangkat sendiri, lalu dipublikasikan lewat
